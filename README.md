@@ -19,17 +19,17 @@ israelisign platform itself**.
 ## Chain · שרשרת
 
 ```
-IsraeliSign Root CA            self-signed · pathlen:1 · 2026-07-28 → 2051-07-22
-├── IsraeliSign Platform CA 1  issued by Root · pathlen:0 · 2026-07-28 → 2035-07-28
-└── IsraeliSign Signer CA 1    issued by Root · pathlen:0 · 2026-07-29 → 2035-07-29
-                               (issues 24 h one-shot signer certificates)
+IsraeliSign Root CA 2026-10           self-signed · pathlen:1 · 2026-10-13 → 2051-10-07
+├── IsraeliSign Platform CA 2026-10   issued by Root · pathlen:0 · 2026-10-13 → 2035-10-13
+└── IsraeliSign Signer CA 2026-10     issued by Root · pathlen:0 · 2026-10-13 → 2035-10-13
+                                      (issues 24 h one-shot signer certificates)
 ```
 
 | Certificate | Subject | Serial | Valid (UTC) | Key · Signature |
 |---|---|---|---|---|
-| Root CA | `CN=IsraeliSign Root CA, O=Taltul Technologies, C=IL` | `12F933B2DA2B0282E813C72C474CA66366A43CA2` | 2026-07-28 17:54:19 → 2051-07-22 17:54:19 | RSA 4096 · sha256WithRSAEncryption |
-| Platform CA 1 | `CN=IsraeliSign Platform CA 1, O=Taltul Technologies, C=IL` | `1000` | 2026-07-28 17:54:20 → 2035-07-28 17:54:20 | RSA 4096 · sha256WithRSAEncryption |
-| Signer CA 1 | `CN=IsraeliSign Signer CA 1, O=Taltul Technologies, C=IL` | `1001` | 2026-07-29 19:11:10 → 2035-07-29 19:11:10 | RSA 4096 · sha256WithRSAEncryption |
+| Root CA | `CN=IsraeliSign Root CA 2026-10, O=Taltul Technologies, C=IL` | `5051F1461A1E52ACBE31159A82BBFB85BF264E96` | 2026-10-13 17:46:28 → 2051-10-07 17:46:28 | RSA 4096 · sha256WithRSAEncryption |
+| Platform CA | `CN=IsraeliSign Platform CA 2026-10, O=Taltul Technologies, C=IL` | `1000` | 2026-10-13 17:55:26 → 2035-10-13 17:55:26 | RSA 4096 · sha256WithRSAEncryption |
+| Signer CA | `CN=IsraeliSign Signer CA 2026-10, O=Taltul Technologies, C=IL` | `1001` | 2026-10-13 17:57:25 → 2035-10-13 17:57:25 | RSA 4096 · sha256WithRSAEncryption |
 
 All three are CA certificates with `Basic Constraints: critical, CA:TRUE` and
 `Key Usage: critical, Certificate Sign, CRL Sign`.
@@ -39,8 +39,8 @@ All three are CA certificates with `Basic Constraints: critical, CA:TRUE` and
 | File | Content |
 |---|---|
 | `root-ca.pem` / `root-ca.der` | Root CA certificate (PEM / DER) |
-| `platform-ca.pem` / `platform-ca.der` | Platform CA 1 certificate |
-| `signer-ca.pem` / `signer-ca.der` | Signer CA 1 certificate |
+| `platform-ca.pem` / `platform-ca.der` | Platform CA certificate |
+| `signer-ca.pem` / `signer-ca.der` | Signer CA certificate |
 | `FINGERPRINTS.txt` | SHA-256 fingerprint of each certificate (SHA-256 of the DER encoding) |
 
 ## How to verify · כיצד לאמת
@@ -72,6 +72,22 @@ certificates themselves (RFC 5280 AIA/CDP: `http://crl.israelisign.com/root-ca.d
 יש להשוות את הטביעות לשני מקורות נוספים: דף האימות הציבורי, ושרשרת התעודות
 המוטמעת בקובץ ה-PDF החתום עצמו. שלושת המקורות חייבים להתאים. אי-התאמה פירושה
 שאחד המקורות שונה, ויש להתייחס לחתימה כאל בלתי ניתנת לאימות עד שההבדל יוסבר.
+
+## Previous chain · השרשרת הקודמת
+
+The chain in force before this publication (Root `B8:C0:1E:50…`, Platform CA 1
+`D5:EE:B6:FE…`, Signer CA 1 `C1:86:00:4C…`) is retired. Its certificates and
+fingerprints stay published, unchanged, at tag
+[`publication/2026-10-12`](https://github.com/management458/israelisign-pki-trust/tree/publication/2026-10-12),
+for checking documents signed with it. Once the platform's signing server
+switches to the chain above, it signs only with that chain. The exact time of
+the switch is recorded as a `cert.rotated` event in the platform audit trail.
+
+השרשרת שהייתה בתוקף לפני פרסום זה (שורש `B8:C0:1E:50…`, Platform CA 1
+`D5:EE:B6:FE…`, Signer CA 1 `C1:86:00:4C…`) הוצאה משימוש. התעודות וטביעות
+האצבע שלה נשארות מפורסמות, ללא שינוי, בתג `publication/2026-10-12`, לבדיקת
+מסמכים שנחתמו בה. מרגע ששרת החתימה של הפלטפורמה עובר לשרשרת שלמעלה, הוא חותם
+רק בה. המועד המדויק של המעבר נרשם כאירוע `cert.rotated` ביומן הביקורת של הפלטפורמה.
 
 ## Integrity of this repository · שלמות המאגר
 
@@ -117,6 +133,7 @@ Anyone can reproduce this check with `git hash-object <file>`.
 | 2026-07-28 | Initial issuance · הקמה ראשונית | — | Root `B8:C0:1E:50…`, Platform CA 1 `D5:EE:B6:FE…` |
 | 2026-07-29 | Signer CA 1 issuance · הוספת רשות חותמים | — | Signer CA 1 `C1:86:00:4C…` |
 | 2026-10-12 | Publication moved to this repository, no certificate change · העברת הפרסום, ללא החלפת תעודה | — | — |
+| 2026-10-13 | Replacement of the whole chain · החלפת השרשרת כולה | Root `B8:C0:1E:50…`, Platform CA 1 `D5:EE:B6:FE…`, Signer CA 1 `C1:86:00:4C…` | Root `2F:F2:4E:6F…`, Platform CA `5C:DA:AC:93…`, Signer CA `26:72:BB:16…` |
 
 At every rotation, the new certificate and the updated `FINGERPRINTS.txt` are
 committed here **before** the new key signs anything, and a `cert.rotated`
