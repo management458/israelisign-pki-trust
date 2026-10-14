@@ -42,6 +42,7 @@ All three are CA certificates with `Basic Constraints: critical, CA:TRUE` and
 | `platform-ca.pem` / `platform-ca.der` | Platform CA certificate |
 | `signer-ca.pem` / `signer-ca.der` | Signer CA certificate |
 | `FINGERPRINTS.txt` | SHA-256 fingerprint of each certificate (SHA-256 of the DER encoding) |
+| `timestamps/FINGERPRINTS.txt.*.tsr` | RFC 3161 time-stamp responses over `FINGERPRINTS.txt` (see below) |
 
 ## How to verify · כיצד לאמת
 
@@ -72,6 +73,41 @@ certificates themselves (RFC 5280 AIA/CDP: `http://crl.israelisign.com/root-ca.d
 יש להשוות את הטביעות לשני מקורות נוספים: דף האימות הציבורי, ושרשרת התעודות
 המוטמעת בקובץ ה-PDF החתום עצמו. שלושת המקורות חייבים להתאים. אי-התאמה פירושה
 שאחד המקורות שונה, ויש להתייחס לחתימה כאל בלתי ניתנת לאימות עד שההבדל יוסבר.
+
+## Timestamps · חותמות זמן
+
+`FINGERPRINTS.txt`, as published at tag `publication/2026-10-13` (SHA-256
+`bc891f4c122cd440e47eee752cf2a98794843740aac8037efcc8e8aeb6f52d71`), was
+time-stamped (RFC 3161) by two independent time-stamping authorities. Each
+response proves that these exact bytes existed **no later than** its time.
+
+| File | Authority | Time (UTC) |
+|---|---|---|
+| `timestamps/FINGERPRINTS.txt.digicert.tsr` | DigiCert (`http://timestamp.digicert.com`), chains to DigiCert Trusted Root G4 | 2026-10-14 07:23:33 |
+| `timestamps/FINGERPRINTS.txt.freetsa.tsr` | freetsa.org (`https://freetsa.org/tsr`) | 2026-10-14 07:23:32 |
+
+```console
+$ git show publication/2026-10-13:FINGERPRINTS.txt > FINGERPRINTS.txt
+$ openssl ts -reply -in timestamps/FINGERPRINTS.txt.digicert.tsr -text   # time, policy, serial
+
+# Use OpenSSL 3 (tested: 3.0.13 on Ubuntu, 3.6 on macOS). The macOS built-in `openssl` is LibreSSL 3.3:
+# it cannot build the DigiCert chain ("unable to get local issuer certificate"). On macOS, use Homebrew's openssl@3.
+# DigiCert: against the system trust store (macOS: /etc/ssl/cert.pem; Debian/Ubuntu: /etc/ssl/certs/ca-certificates.crt)
+$ openssl ts -verify -data FINGERPRINTS.txt -in timestamps/FINGERPRINTS.txt.digicert.tsr -CAfile /etc/ssl/cert.pem
+
+# freetsa.org: its root and TSA certificates are published at https://freetsa.org/files/
+$ curl -sO https://freetsa.org/files/cacert.pem && curl -sO https://freetsa.org/files/tsa.crt
+$ openssl ts -verify -data FINGERPRINTS.txt -in timestamps/FINGERPRINTS.txt.freetsa.tsr -CAfile cacert.pem -untrusted tsa.crt
+```
+
+Both must print `Verification: OK`. Neither authority is a qualified (eIDAS)
+trust service. Together they are independent third-party evidence of the
+publication time, alongside the GitHub time of tag `publication/2026-10-13`.
+
+`FINGERPRINTS.txt` כפי שפורסם בתג `publication/2026-10-13` קיבל חותמת זמן
+(RFC 3161) משתי רשויות חותמות זמן בלתי תלויות. כל חותמת מוכיחה שהבתים המדויקים
+האלה היו קיימים **לא יאוחר** מהמועד שבה. אף אחת מהרשויות אינה שירות אמון מוסמך
+(eIDAS). יחד הן ראיה בלתי תלויה של צד שלישי למועד הפרסום, לצד מועד התג ב-GitHub.
 
 ## Previous chain · השרשרת הקודמת
 
